@@ -31,7 +31,7 @@ struct VDCC {
                     sorted.emplace_back();
                     int x;
                     do {
-                        int x = stk.back();
+                        x = stk.back();
                         stk.pop_back();
                         sorted[t].push_back(x);
                     } while (x != v);

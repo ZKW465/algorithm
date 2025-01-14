@@ -95,6 +95,10 @@ std::vector<i64> factorize(i64 n) {
     return p;
 }
 
+/**
+ * ps : 在 n = 1E5 时，能 1s 内分解 1 <= a[i] <= 1E9 的数据
+*/
+
 void dfs(int i, auto &b, vector<i64>& ans, i64 c) {
     if (i == b.size()) {
         ans.push_back(c);

@@ -1,92 +1,64 @@
 template<typename T>
-T power(T x, long long b) {
-    T res = 1;
-    while (b) {
-        if (b & 1) res *= x;
-        x *= x;
-        b >>= 1;
+T power(T x, i64 b) {
+    T res {1};
+    for (; b; b >>= 1, x *= x) {
+        if (b & 1) {
+            res *= x;
+        }
     }
     return res;
 }
 
-template<int P>
-struct mod_int {
-    int x;
-    static int mod;
-    mod_int() : x{} {}
-    mod_int(long long x) : x(norm(x % getMod())) {}
-
+struct Z {
+    static constexpr int P = 998244353;
+    int x = 0;
+    Z() {}
+    Z(i64 x) : x(norm(x % P)) {}
     int norm(int x) {
         if (x >= P) x -= P;
         if (x < 0) x += P;
         return x;
     }
-
-    static void setMod(int x) {
-        mod = x;
-    }
-    static int getMod() {
-        return (P > 0 ? P : mod);
-    }
-    mod_int operator-() {
+    Z operator-() {
         return -x;
     }
-
-    mod_int &operator+=(mod_int rhs) {
-        x = norm(x + rhs.x);
+    Z &operator+=(Z v) {
+        x = norm(x + v.x);
         return *this;
     }
-    mod_int &operator-=(mod_int rhs) {
-        x = norm(x - rhs.x);
+    Z &operator-=(Z v) {
+        x = norm(x - v.x);
         return *this;
     }
-    mod_int &operator*=(mod_int rhs) {
-        x = 1ll * x * rhs.x % getMod();
+    Z &operator*=(Z v) {
+        x = 1ll * x * v.x % P;
         return *this;
     }
-
-    mod_int inv() {
+    Z &operator/=(Z v) {
+        return *this *= v.inv();
+    }
+    Z inv() {
         return power(*this, P - 2);
     }
-    mod_int &operator/=(mod_int rhs) {
-        x = 1ll * x * rhs.inv().x % getMod();
-        return *this;
+    friend Z operator+(Z u, Z v) {
+        return u += v;
     }
-
-    friend mod_int operator+(mod_int lhs, mod_int rhs) {
-        return lhs += rhs;
+    friend Z operator-(Z u, Z v) {
+        return u -= v;
     }
-    friend mod_int operator-(mod_int lhs, mod_int rhs) {
-        return lhs -= rhs;
+    friend Z operator*(Z u, Z v) {
+        return u *= v;
     }
-    friend mod_int operator*(mod_int lhs, mod_int rhs) {
-        return lhs *= rhs;
+    friend Z operator/(Z u, Z v) {
+        return u /= v;
     }
-    friend mod_int operator/(mod_int lhs, mod_int rhs) {
-        return lhs /= rhs;
+    friend istream &operator>>(istream &cin, Z &v) {
+        i64 x;
+        cin >> x;
+        v = x;
+        return cin;
     }
-    friend bool operator==(mod_int lhs, mod_int rhs) {
-        return lhs.x == rhs.x;
+    friend ostream &operator<<(ostream &cout, Z v) {
+        return cout << v.x;
     }
-    friend bool operator!=(mod_int lhs, mod_int rhs) {
-        return lhs.x != rhs.x;
-    }
-
-    template<class istream>
-    friend istream &operator>>(istream &input, mod_int &rhs) {
-        long long x;
-        input >> x;
-        rhs = x;
-        return input;
-    }
-    template<class ostream>
-    friend ostream &operator<<(ostream &output, mod_int rhs) {
-        return output << rhs.x;
-    }
-};
-
-template<>
-int mod_int<0>::mod = 998244353;
-
-constexpr int P = 1e9 + 7;
-using Z = mod_int<P>;
+};  
