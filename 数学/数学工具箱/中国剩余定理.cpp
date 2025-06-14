@@ -1,59 +1,107 @@
-template<typename T = i64>
-array<T, 3> _Exgcd(T a, T b) {
-    T x1 = 1, x2 = 0, x3 = 0, x4 = 1;
-    while (b != 0) {
-        T c = a / b;
-        std::tie(x1, x2, x3, x4, a, b)
-            = std::make_tuple(x3, x4, x1 - x3 * c, x2 - x4 * c, b, a - b * c);
+using i128 = __int128_t;
+
+template<typename T>
+array<T, 3> exgcd(T a, T b) {
+  T x1 = 1, x2 = 0, x3 = 0, x4 = 1;
+  while (b != 0) {
+    T c = a / b;
+    tie(x1, x2, x3, x4, a, b) =
+      make_tuple(x3, x4, x1 - x3 * c, 
+        x2 - x4 * c, b, a - b * c);
+  }
+  return {a, x1, x2};
+}
+
+template<bool U = true>
+auto norm(auto x, auto p) {
+  if constexpr (U) {
+    if (x < 0) {
+      x += p;
     }
-    return {a, x1, x2}; //x = x1, y = x2;
+  } else {
+    if (x >= p) {
+      x -= p;
+    }
+  }
+  return x;
 }
 
 template<typename T>
-T inv(i64 a, i64 P) {
-    auto [gcd, x, k] = _Exgcd(a, P);
-    return (x % P + P) % P;
+T inv(T a, T p) {
+  auto [g, x, y] = exgcd(a, p);
+  return norm(x % p, p);
 }
 
 /**
- * 算法：中国剩余定理
- * 作用：求解一元线性同余方程 (x == a (mod P)) 在模n (所有的模积) 的解
- * 限制：所有模互质
+ * Algorithm: Chinese Remainder Theorem (CRT)
+ * Purpose: Solves system of congruences x ≡ a_i (mod p_i)
+ * Returns: Solution modulo product of all p_i
+ * Requirement: All moduli must be pairwise coprime
  */
 
-template<typename T>
-T chineseRemainderTheorem(vector<i64> &a, vector<i64> &P) {
-    T n = accumulate(P.begin(), P.end(), (T) 1, multiplies<T>()), ans = 0;
+template<typename U, typename T, typename V = i128>
+U crt(vector<T>& a, vector<T>& p) {
+  U n = accumulate(p.begin(), p.end(), U(1), multiplies<U>()), res = 0;
 
-    for (int i = 0; i < (i64) a.size(); ++i) {
-        T P1 = n / P[i], b;
-        b = inv<T>(P1, P[i]);
-        ans = (ans + a[i] * P1 * b % n) % n;
-    }
-    return (ans % n + n) % n;
+  for (int i = 0; i < a.size(); i++) {
+    U m = n / p[i];
+    U b = inv<U>(m, p[i]);
+    res = norm<false>(res + V(a[i]) * m * b % n, n); // Uses wider type V to prevent overflow
+  }
+  return res;
 }
 
-template<typename T = i64>
-array<T, 3> Exgcd(T a, T b, T res) {
-    assert(res % __gcd(a, b) == 0);
-    auto [gcd, x, y] = _Exgcd(a, b);
-    return {gcd, res / gcd * x, res / gcd * y};
+template<typename U, auto p, typename V = i128>
+U crt(auto& a) {
+  constexpr int N = p.size();
+  static const
+  U n = accumulate(p.begin(), p.end(), U(1), multiplies<U>());
+  U res = 0;
+
+  static const 
+  array<V, N> mul = [&] () {
+    array<V, N> res;
+    for (int i = 0; i < N; i++) {
+      U m = n / p[i];
+      res[i] = V(m) * inv<U>(m, p[i]);
+    } 
+    return res;
+  }();
+  
+  for (int i = 0; i < N; i++) {
+    res = norm<false>(res + a[i] * mul[i] % n, n); // Uses wider type V to prevent overflow
+  }
+  return res;
+}
+
+template<typename T>
+auto safe_exgcd(T a, T b, T res = 1) {
+  auto [g, x, y] = exgcd(a, b);
+  assert(res % g == 0);
+  if constexpr (is_same<T, int>::value) {
+    i64 mul = res / g;
+    return make_tuple(g, mul * x, mul * y);
+  } else {
+    i128 mul = res / g;
+    return make_tuple(g, mul * x, mul * y);
+  }
 }
 
 /**
- * 算法：扩展中国剩余定理
- * 作用：求解一元线性同余方程（ x == a （ mod m ））在模n（所有模的最小公倍数）的解
- * 无限制：所有模互质
-*/
-template<typename T>
-T extendTheChineseRemainderTheorem(vector<i64> &a, vector<i64> &P) {
-    T P1 = P[0], a1 = a[0];
-    for (int i = 1; i < a.size(); ++i) {
-        T P2 = P[i], a2 = a[i];
-        auto [gcd, p, q] = Exgcd(P1, P2, a2 - a1);
-        a1 = P1 * p + a1;
-        P1 = P1 * P2 / gcd;
-        a1 = (a1 % P1 + P1) % P1;
+ * Algorithm: Extended Chinese Remainder Theorem (EXCRT)
+ * Purpose: Solves system of congruences x ≡ a_i (mod m_i)
+ * Returns: Solution modulo LCM of all m_i
+ * Note: Works for non-coprime moduli
+ */
+template<typename U, typename T, typename V = i128>
+U excrt(vector<T> &a, vector<T> &p) {
+    U m = p[0], x = a[0];
+    for (int i = 1; i < a.size(); i++) {
+        T mod = p[i], y = a[i];
+        auto [g, z, _] = safe_exgcd<U>(m, mod, y - x);
+        V t = V(m) * z + x;
+        m = m / g * mod;
+        x = norm(t % m, m);
     }
-    return a1;
+    return x;
 }

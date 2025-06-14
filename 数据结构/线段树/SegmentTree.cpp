@@ -59,7 +59,11 @@ struct SegmentTree {
         } else if (m <= x) {
             return rangeQuery(2 * p + 1, m, r, x, y);
         } else {
-            return Info::merge(rangeQuery(2 * p, l, m, x, y), rangeQuery(2 * p + 1, m, r, x, y), std::max(l, x), m, std::min(r, y));
+            return Info::merge(
+                rangeQuery(2 * p, l, m, x, y), 
+                rangeQuery(2 * p + 1, m, r, x, y), 
+                std::max(l, x), m, std::min(r, y)
+            );
         }
     }
     Info rangeQuery(int l, int r) {
@@ -122,11 +126,11 @@ struct SegmentTree {
 };
 
 struct Info {
-    void apply(const Info &rhs, int l, int r) {}
-    void update(const Info &lhs, const Info &rhs, int l, int m, int r) {}
-    static Info merge(const Info &lhs, const Info &rhs, int l, int m, int r) {
+    void apply(const Info &v, int l, int r) {}
+    void update(const Info &u, const Info &v, int l, int m, int r) {}
+    static Info merge(const Info &u, const Info &v, int l, int m, int r) {
         Info info = Info();
-        info.update(lhs, rhs, l, m, r);
+        info.update(u, v, l, m, r);
         return info;
     }
     friend ostream &operator<<(ostream &cout, Info t) {

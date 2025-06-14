@@ -20,10 +20,10 @@ struct Fenwick {
     }
 
     T Query(int x) {
-        if (x <= 0) return T{};
-        if (x > n) x = n;
+        if (x < 0) return T{};
+        if (x >= n) x = n - 1;
         T ans{};
-        for (int i = x; i != 0; i -= i & -i) {
+        for (int i = x + 1; i != 0; i -= i & -i) {
             ans = ans + a[i - 1];
         }
         return ans;
@@ -31,7 +31,7 @@ struct Fenwick {
 
     T range_Query(int l, int r) {
         if (l >= r) return 0;
-        return Query(r) - Query(l);
+        return Query(r) - Query(l - 1);
     }
 
     int kth(const T &k) {

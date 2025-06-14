@@ -62,3 +62,12 @@ struct Z {
         return cout << v.x;
     }
 };  
+
+struct Helper {
+    Helper() = default;
+    ~Helper() {
+        cerr << "good\n";
+        fill(buf, head + sizeof(node), 0);
+        head = buf;
+    }
+};

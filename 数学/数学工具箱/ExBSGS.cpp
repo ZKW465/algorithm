@@ -1,48 +1,56 @@
 /**
- * 算法：扩展BSGS
- * 作用：求解 a ^ x = b ( mod m )
- * 无要求: a与m互质
- * 返回：问题的最小非负x，无解返回-1
- * 建议使用自定义Hash
-*/
-using i64 = long long;
-using ui64 = unsigned long long;
-constexpr i64 exBSGS(i64 a, i64 b, i64 m, i64 k = 1) {
-    constexpr i64 inf = 1e15;
-    auto BSGS = [&](i64 a, i64 b, i64 m, i64 k = 1) {
-# ifdef _Hash
-        unordered_map <ui64, ui64, Hash> map;
-# else
-        std::map <ui64, ui64> map;
-# endif
-        i64 cur = 1, t = sqrt(m) + 1;
-        for (i64 B = 1; B <= t; ++B) {
-            (cur *= a) %= m;
-            map[b * cur % m] = B;
+ * Algorithm: Extended Baby-Step Giant-Step (BSGS)
+ * Purpose: Solves a^x ≡ b (mod m) for x, even when a and m are not coprime
+ * 
+ * Parameters:
+ *   a - base
+ *   b - result
+ *   m - modulus
+ *   k - internal parameter used in recursion (default 1)
+ * 
+ * Returns:
+ *   The smallest non-negative integer x satisfying the equation, or -1 if no solution exists
+ * 
+ * Time Complexity: O(√m)
+ * Space Complexity: O(√m)
+ * 
+ * Note: For better performance with large m, consider using a custom hash table
+ */
+int exBSGS(int a, int b, int m, int k = 1) {
+    auto BSGS = [&](int a, int b, int m, int k = 1) {
+        std::map<int, int> map;  // use hash table will be better
+        int cur = 1, t = sqrt(m) + 1;
+        for (int B = 1; B <= t; ++B) {
+            cur = 1LL * cur * a % m;
+            map[1LL * b * cur % m] = B;
         }
-        ll now = cur * k % m;
-        for (i64 A = 1; A <= t; ++A) {
+        int now = 1LL * cur * k % m;
+        for (int A = 1; A <= t; ++A) {
             auto it = map.find(now);
-            if (it != map.end())
-                return A * t - (i64) it->second;
-            (now *= cur) %= m;
+            if (it != map.end()) {
+                i64 res = 1LL * A * t - it->second;
+                assert(res <= std::numeric_limits<int>::max());
+                return int(res);
+            }
+            now = 1LL * now * cur % m;
         }
-        return -inf; // 无解
+        return int(-1); // 无解
     };
-    i64 A = a %= m, B = b %= m, M = m;
-    if (b == 1) return 0;
-    i64 cur = 1 % m;
+    int A = a %= m, B = b %= m, M = m;
+    if (b == 1) 
+        return 0;
+    int cur = 1 % m;
     for (int i = 0;; i++) {
-        if (cur == B) return i;
-        cur = cur * A % M;
-        i64 d = __gcd(a, m);
-        // if (b % d) return -inf;
-        if(b % d) return -1;
+        if (cur == B) 
+            return i;
+        cur = 1LL * cur * A % M;
+        int d = std::gcd(a, m);
+        if(b % d) 
+            return -1;
         if (d == 1) {
-            auto ans = BSGS(a, b, m, k * a % m);
-            if (ans == -inf) return -1;
-            else return ans + i + 1;
+            int ans = BSGS(a, b, m, 1LL * k * a % m);
+            return ans == -1 ? ans : ans + i + 1;
         }
-        k = k * a / d % m, b /= d, m /= d;
+        k = 1LL * k * a / d % m, b /= d, m /= d;
     }
 }

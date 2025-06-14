@@ -1,7 +1,7 @@
 using i64 = long long;
 // 时间复杂度 O(n^3 + n^2 * logp)
 // 行列式 mod p， a[1, n][1, n]
-constexpr int calcDet(vector<vector<int>> &a, int n, const int p) {
+int calcDet(vector<vector<int>> &a, int n, const int p) {
     i64 zf = 1, ans = 1, tmp = 0;
 
     for(int i = 1; i <= n; ++i) 
@@ -36,7 +36,7 @@ constexpr int calcDet(vector<vector<int>> &a, int n, const int p) {
 
 // 时间复杂度 O(n^3)
 // 行列式 a[0, n)[0, n)
-constexpr double calcDet(vector<vector<double>> &a, int n, const double eps = 1e-9) {
+double calcDet(vector<vector<double>> &a, int n, const double eps = 1e-9) {
     double det = 1;
     for (int i = 0; i < n; ++i) {
         int k = i;
