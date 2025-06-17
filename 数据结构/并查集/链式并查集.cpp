@@ -1,38 +1,38 @@
 struct DSU {
-    std::vector<int> prefa, nxtfa;
-    DSU() {}
-    DSU(int n) { init(n); }
-    void init(int n) {
-        prefa.resize(n);
-        nxtfa.resize(n);
-        std::iota(prefa.begin(), prefa.end(), 0);
-        std::iota(nxtfa.begin(), nxtfa.end(), 0);
-    }
+  std::vector<int> l, r;
+  DSU() {}
+  DSU(int n) { init(n); }
+  void init(int n) {
+      l.resize(n);
+      r.resize(n);
+      std::iota(l.begin(), l.end(), 0);
+      std::iota(r.begin(), r.end(), 0);
+  }
 
-    int nxt(int x) {
-        int t = x;
-        while (nxtfa[x] != x) {
-            x = nxtfa[x];
-        }
-        while (t != x) {
-            nxtfa[t] = x;
-            t = nxtfa[t];
-        }
-        return x;
-    }
-    int pre(int x) {
-        int t = x;
-        while (prefa[x] != x) {
-            x = prefa[x];
-        }
-        while (t != x) {
-            prefa[t] = x;
-            t = prefa[t];
-        }
-        return x;
-    }
-    void remove(int x) {
-        nxtfa[x] = nxt(x + 1);
-        prefa[x] = pre(x - 1);
-    }
+  int next(int x) {
+      int t = x;
+      while (r[x] != x) {
+          x = r[x];
+      }
+      while (t != x) {
+          r[t] = x;
+          t = r[t];
+      }
+      return x;
+  }
+  int prev(int x) {
+      int t = x;
+      while (l[x] != x) {
+          x = l[x];
+      }
+      while (t != x) {
+          l[t] = x;
+          t = l[t];
+      }
+      return x;
+  }
+  void remove(int x) {
+      r[x] = next(x + 1);
+      l[x] = prev(x - 1);
+  }
 };
