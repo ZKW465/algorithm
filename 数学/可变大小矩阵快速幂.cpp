@@ -48,6 +48,9 @@ struct mat {
     return *this;
   }
   mat pow(i64 b) {
+    if ((b %= (P - 1)) < 0) {
+      b += P - 1;
+    }
     mat a = *this;
     mat res;
     res.turn_eye();
