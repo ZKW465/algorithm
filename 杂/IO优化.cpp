@@ -24,6 +24,7 @@ struct Input {
   void tie(void*) {}
 
   template<typename T>
+  requires is_integral_v<T>
   Input& operator>>(T& x) {
     x = 0;
     bool neg = false;
@@ -87,6 +88,7 @@ struct Output {
   ~Output() { fwrite(pbuf, 1, pp - pbuf, stdout); }
 
   template<class T>
+  requires is_integral_v<T>
   Output& operator<<(T x) {
     if (x < 0) {
       push('-');

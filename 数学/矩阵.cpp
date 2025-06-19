@@ -1,15 +1,27 @@
 template <typename T> 
 struct Matrix : public vector<vector<T>> {
   using vector<vector<T>>::vector;
-  Matrix(int x, bool idt) : vector<vector<T>>(x, vector<T>(x)) {
-    if (idt) {
-      for (int i = 0; i < x; ++i) {
-        (*this)[i][i] = 1;
+  Matrix(int x) : vector<vector<T>>(x, vector<T>(x)) {};
+  Matrix(int x, int y) : vector<vector<T>>(x, vector<T>(y)) {};
+  Matrix(int x, int y, T c) : vector<vector<T>>(x, vector<T>(y, c)) {};
+
+  void clean() {
+    int n = this->size();
+    int m = this->back().size();
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < m; j++) {
+        (*this)[i][j] = 0;
       }
     }
   }
-  Matrix(int x, int y) : vector<vector<T>>(x, vector<T>(y)) {};
-  Matrix(int x, int y, T c) : vector<vector<T>>(x, vector<T>(y, c)) {};
+  
+  void turn_eye() {
+    clean();
+    int n = this->size();
+    for (int i = 0; i < n; i++) {
+      (*this)[i][i] = 1;
+    }
+  }
 
   Matrix operator+(Matrix a) {
     auto it = *this;
@@ -64,8 +76,7 @@ struct Matrix : public vector<vector<T>> {
 
   Matrix pow(i64 b) {
     auto res = Matrix(this->size(), this->size());
-    for (int i = 0; i < this->size(); ++i)
-      res[i][i] = 1;
+    res.turn_eye();
     auto a = *this;
     for (; b; b /= 2, a *= a)
       if (b & 1)
@@ -91,16 +102,16 @@ struct Matrix : public vector<vector<T>> {
     for (int i = 0; i < n; ++i) {
       int r = i;
       for (int k = i; k < n; ++k)
-        if (it[k][i]) {
+        if (it[k][i] != 0) {
           r = k;
           break;
         }
       if (r != i)
         swap(it[r], it[i]);
-      if (!it[i][i])
+      if (it[i][i] == 0)
         return Matrix<T>();
 
-      T x = T(1) / it[i][i];
+      T x = it[i][i].inv();
       for (int k = 0; k < n; ++k) {
         if (k == i)
           continue;

@@ -1,4 +1,5 @@
-template <int N> 
+constexpr int N = 100;
+
 struct mat {
   inline static int n = N;
   array<array<Z, N>, N> a{};
@@ -9,13 +10,20 @@ struct mat {
     }
     return u;
   }
-  void set_lim(int n_) {
+  static void set_lim(int n_) {
     n = n_;
   }
   void clean() {
     for (int i = 0; i < n; i += 1) {
       for (int j = 0; j < n; j += 1) {
         a[i][j] = 0;
+      }
+    }
+  }
+  void copy(const mat& v) {
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
+        a[i][j] = v.a[i][j];
       }
     }
   }
@@ -44,13 +52,10 @@ struct mat {
     return z;
   }
   mat &operator*=(const mat &v) {
-    *this = *this * v;
+    this->copy(*this * v);
     return *this;
   }
   mat pow(i64 b) {
-    if ((b %= (P - 1)) < 0) {
-      b += P - 1;
-    }
     mat a = *this;
     mat res;
     res.turn_eye();

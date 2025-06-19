@@ -14,8 +14,8 @@ struct mint {
     constexpr mint(i64 x_ = 0) : x(norm(x_ % P)) {}
     template<bool U = true>
     static int norm(int x) {
-        if constexpr (U) { if (x < 0) x += P;}
-        else { if (x >= P) x -= P;}
+        if constexpr (U) { if (x < 0) x += P; }
+        else { if (x >= P) x -= P; }
         return x;
     }
     mint operator-() {
@@ -35,7 +35,7 @@ struct mint {
         x = 1LL * x * v.x % P;
         return *this;
     }
-    bool operator==(mint v) {
+    bool operator==(mint v) const {
         return x == v.x;
     }
     friend mint operator+(mint u, mint v) {
@@ -55,16 +55,18 @@ struct mint {
             v += P - 1;
         return power(*this, v);
     }
+    template<typename istream>
     friend istream& operator>>(istream& cin, mint& u) {
         int x;
         cin >> x;
         u = mint(x);
         return cin;
     }
+    template<typename ostream>
     friend ostream& operator<<(ostream& cout, mint u) {
         return cout << u.x;
     }
 };
 
-constexpr int P = 998244353;
+constexpr int P = 1E9 + 7;
 using Z = mint<P>;
