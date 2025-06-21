@@ -1,11 +1,10 @@
-/* bitmask set
-  T in  [0, 32]  use u32
-        [33,64]  use u64
-        [65 128] use u128
-*/
-template<int N, typename T = int>
-struct bmset {
+template <size_t N, 
+          typename T = std::conditional_t<N <= 32, uint32_t,
+                       std::conditional_t<N <= 64, uint64_t, __uint128_t>>>
+requires (1 <= N && N <= 128)
+struct BitmastSet {
   array<T, N> a{};
+
   bool insert(T x) {
     for (int i = N - 1; i >= 0; i--)
       if (x >> i & 1) {
@@ -17,45 +16,70 @@ struct bmset {
       }
     return false;
   }
-  bool check(T x) {
+
+  bool contains(T x) {
     for (int i = N - 1; i >= 0; i--)
       if (x >> i & 1) {
-        if (!a[i]) {
-          break;
-        }
+        if (!a[i]) return false;
         x ^= a[i];
       }
-    return x == 0;
+    return true;
   }
-  T max(T res) {
-    for (int i = N - 1; i >= 0; i--)
-      if ((res ^ a[i]) > res)
+
+  T query_max(T res) {
+    for (int i = N - 1; i >= 0; i--) {
+      if ((res ^ a[i]) > res) {
         res ^= a[i];
+      }
+    }
     return res;
   }
-  T min(T res) {
-    for (int i = N - 1; i >= 0; i--)
-      if (res >> i & 1)
+
+  T query_min(T res) {
+    for (int i = N - 1; i >= 0; i--) {
+      if (res >> i & 1) {
         res ^= a[i];
+      }
+    }
     return res;
   }
-  T kth(int k) {
-    array<T, N> t{};
-    int n = 0;
+
+  void normalize() {
+    for (int i = 0; i < N; i++) {
+      for (int j = 0; j < i; j++) {
+        if (a[i] >> j & 1) {
+          a[i] ^= a[j];
+        }
+      }
+    }
+  }
+
+  /**
+   * @brief 查询第k小的异或值（必须调用normalize()后使用）
+   * @param k 第k小（从0开始计数）
+   * @return 第k小的值，如果不存在返回-1
+   */
+  T kth(T k) {
     T res = 0;
     for (int i = 0; i < N; i++) {
-      for (int j = i - 1; j >= 0; j--)
-        if (a[i] >> j & 1)
-          a[i] ^= a[j];
-      if (a[i]) t[n++] = a[i];
+      if (a[i]) {
+        if (k & 1) {
+          res ^= a[i];
+        }
+        k /= 2;
+      }
     }
-    for (int i = 0; i < n; i++)
-      if (k >> i & 1) 
-        res ^= t[i];
-    return res;
+    return k ? T(-1) : res;
   }
-  void merge(bmset& v) {
-    for (int i = 0; i < N; i++)
-      insert(v.a[i]);
+
+  void merge(BitmastSet &v) {
+    for (int i = 0; i < N; i++) {
+      if (v.a[i]) {
+        insert(v.a[i]);
+      }
+    }
   }
 };
+
+constexpr int N = 50;
+using bmset = BitmastSet<N>;

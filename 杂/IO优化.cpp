@@ -1,26 +1,7 @@
 constexpr int kBufSize = 1 << 20;
 
-struct Input {
-  char buf[kBufSize];
-  char *p1 = buf;
-  char *p2 = buf;
-
-  __attribute__((always_inline)) char gc() {
-    if (__builtin_expect(p1 == p2, 0)) {
-      p2 = (p1 = buf) + fread(buf, 1, kBufSize, stdin);
-      if (__builtin_expect(p1 == p2, 0)) return EOF;
-    }
-    return *p1++;
-  }
-  
-  __attribute__((always_inline)) bool isdigit(char c) { 
-    return c >= '0' && c <= '9'; 
-  }
-  
-  __attribute__((always_inline)) bool blank(char c) {
-    return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == EOF;
-  }
-
+class Input {
+public:
   void tie(void*) {}
 
   template<typename T>
@@ -68,23 +49,31 @@ struct Input {
       s += ch;
     return *this;
   }
+private:
+  char buf[kBufSize];
+  char *p1 = buf;
+  char *p2 = buf;
+
+  __attribute__((always_inline)) char gc() {
+    if (__builtin_expect(p1 == p2, 0)) {
+      p2 = (p1 = buf) + fread(buf, 1, kBufSize, stdin);
+      if (__builtin_expect(p1 == p2, 0)) return EOF;
+    }
+    return *p1++;
+  }
+  
+  __attribute__((always_inline)) bool isdigit(char c) { 
+    return c >= '0' && c <= '9'; 
+  }
+  
+  __attribute__((always_inline)) bool blank(char c) {
+    return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == EOF;
+  }
 } input;
 # define cin input
 
-struct Output {
-  char pbuf[kBufSize];
-  char *pp = pbuf;
-  char stk[40];
-  int top = 0;
-
-  __attribute__((always_inline)) void push(char c) {
-    if (__builtin_expect(pp - pbuf == kBufSize, 0)) {
-      fwrite(pbuf, 1, kBufSize, stdout);
-      pp = pbuf;
-    }
-    *pp++ = c;
-  }
-
+class Output {
+public:
   ~Output() { fwrite(pbuf, 1, pp - pbuf, stdout); }
 
   template<class T>
@@ -106,7 +95,7 @@ struct Output {
 
   template<typename T>
   typename std::enable_if<std::is_same<T, double>::value, Output&>::type
-  operator<<(const T&) = delete; // 不能输出double，因为4舍5入问题
+  operator<<(const T&) = delete; // 不能输出double，因为4舍5入的精度问题不好处理
 
   Output& operator<<(const string& x) {
     for (char u : x) {
@@ -114,7 +103,7 @@ struct Output {
     }
     return *this;
   }
-  template<size_t N>
+  template<int N>
   Output& operator<<(const char(&x)[N]) {
     *this << string(x);
     return *this;
@@ -132,6 +121,19 @@ struct Output {
   Output& operator<<(bool x) {
     push(x ? '1' : '0');
     return *this;
+  }
+private:
+  char pbuf[kBufSize];
+  char *pp = pbuf;
+  char stk[40];
+  int top = 0;
+
+  __attribute__((always_inline)) void push(char c) {
+    if (__builtin_expect(pp - pbuf == kBufSize, 0)) {
+      fwrite(pbuf, 1, kBufSize, stdout);
+      pp = pbuf;
+    }
+    *pp++ = c;
   }
 } output;
 # define cout output

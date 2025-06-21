@@ -8,21 +8,12 @@ public:
   };
   int n;
   vector<edge> edges;
-  vector<int> ids;
-  forest(int n_) : n(n_), ids(n_ + 1) {}
+  vector<vector<int>> ids;
+  forest(int n_) : n(n_), ids(n_) {}
   void add(int from, int to, T cost = 1) {
-    ids[from + 1]++;
-    ids[to + 1]++;
+    int id = edges.size();
+    ids[from].emplace_back(id);
+    ids[to].emplace_back(id);
     edges.emplace_back(from, to, cost);
-  }
-  void init() { 
-    for (int i = 1; i <= n; i++) {
-      ids[i] += ids[i - 1];
-    }
-    auto cnt = ids;
-    auto last = edges;
-    for (auto& edge : last) {
-      edges[cnt[edge.first]++] = edge;
-    }
   }
 };

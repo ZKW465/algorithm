@@ -11,7 +11,8 @@ T power(T a, int b, T res = 1) {
 template<int P>
 struct mint {
     int x;
-    constexpr mint(i64 x_ = 0) : x(norm(x_ % P)) {}
+    mint(i64 x_ = 0) : x(norm(x_ % P)) {}
+    static constexpr int mod() { return P; }
     template<bool U = true>
     static int norm(int x) {
         if constexpr (U) { if (x < 0) x += P; }
@@ -35,6 +36,9 @@ struct mint {
         x = 1LL * x * v.x % P;
         return *this;
     }
+    mint& operator/=(mint v) {
+        return *this *= v.inv();
+    }
     bool operator==(mint v) const {
         return x == v.x;
     }
@@ -46,6 +50,9 @@ struct mint {
     }
     friend mint operator*(mint u, mint v) {
         return u *= v;
+    }
+    friend mint operator/(mint u, mint v) {
+        return u /= v;
     }
     mint inv() const {
         return pow(-1);
@@ -68,5 +75,5 @@ struct mint {
     }
 };
 
-constexpr int P = 1E9 + 7;
+constexpr int P = 998244353;
 using Z = mint<P>;
