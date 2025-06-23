@@ -22,13 +22,14 @@ struct node {
   }
 };
 
-// must modify
-Tp make_sentinnel() {
-	Tp t = make_safe<node>(0);
-	t->siz = 0;
+// must work once
+void make_sentinnel() {
+  if (!pool<node>.empty()) {
+    return;
+  }
+  Tp t = make_safe<node>(0);
+  t->siz = 0;
 }
-
-Tp sentinel = make_sentinnel();
 
 // to [-inf, val) and [val, inf]
 pair<Tp, Tp> split1(Tp t, auto val) {
@@ -97,7 +98,7 @@ void dfs(Tp t, int dep = 0) {
 }
 
 // less_to_val_siz
-int less_to_val(Tp t, auto val) {
+int count_less(Tp t, auto val) {
   int less_siz = 0;
   while (t) {
     if (t->val >= val) {
@@ -110,7 +111,8 @@ int less_to_val(Tp t, auto val) {
   return less_siz;
 }
 
-Tp rank(Tp t, int rk) {
+// from one
+Tp kth_element(Tp t, int rk) {
   while (true) {
     if (t->l->siz >= rk) {
       t = t->l;

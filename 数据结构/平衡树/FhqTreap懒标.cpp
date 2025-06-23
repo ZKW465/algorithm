@@ -9,22 +9,26 @@ struct node {
   Tp l, r;
   int siz, k;
   i64 val;
+  i64 sum;
   i64 tag;
   node(i64 val_) {
     siz = 1;
     k = rng();
     val = val_;
+    sum = val_;
     tag = 0;
   }
-  void apply(auto tag) {
+  void apply(auto c) {
     if (siz == 0) {
       return;
     }
-    val += tag;
-    tag += tag;
+    val += c;
+    sum += 1LL * c * siz;
+    tag += c;
   }
   void pull() {
     siz = l->siz + 1 + r->siz;
+    sum = l->sum + val + r->sum;
   }
   void push() {
     if (tag) {
@@ -36,12 +40,10 @@ struct node {
 };
 
 // must modify
-Tp make_sentinnel() {
+void make_sentinnel() {
   Tp t = make_safe<node>(0);
   t->siz = 0;
 }
-
-Tp sentinel = make_sentinnel();
 
 // to [-inf, val) and [val, inf]
 pair<Tp, Tp> split1(Tp t, auto val) {
@@ -109,12 +111,12 @@ void dfs(Tp t, int dep = 0) {
   dfs(t->l, dep + 1);
   for (int i = 0; i < dep; i += 1)
     cerr << '\t';
-  cerr << t->val << ' ' << t->tag << '\n';
+  cerr << t->val << ' ' << t->sum << " " << t->tag << " " << t->siz << '\n';
   dfs(t->r, dep + 1);
 }
 
 // less_to_val_siz
-int less_to_val(Tp t, auto val) {
+int count_less(Tp t, auto val) {
   int less_siz = 0;
   while (t) {
     t->push();
@@ -128,13 +130,13 @@ int less_to_val(Tp t, auto val) {
   return less_siz;
 }
 
-Tp rank(Tp t, int rk) {
+Tp kth_element(Tp t, int k) {
   while (true) {
     t->push();
-    if (t->l->siz >= rk) {
+    if (t->l->siz >= k) {
       t = t->l;
-    } else if (t->l->siz + 1 < rk) {
-      rk -= t->l->siz + 1;
+    } else if (t->l->siz + 1 < k) {
+      k -= t->l->siz + 1;
       t = t->r;
     } else
       break;

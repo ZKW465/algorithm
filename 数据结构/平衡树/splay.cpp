@@ -1,7 +1,7 @@
 struct node;
 using Tp = safe_ptr<node>;
 struct node {
-  Tp ch[2], p;
+  Tp l, r, p;
   int siz;
   i64 val;
   i64 sum;
@@ -12,67 +12,67 @@ struct node {
     sum = val;
     tag = 0;
   }
+  void push() {
+    if (tag) {
+      l->apply(tag);
+      r->apply(tag);
+      tag = 0;
+    }
+  }
+  void pull() {
+    siz = l->siz + 1 + r->siz;
+    sum = l->sum + val + r->sum;
+  }
+  void apply(auto c) {
+    if (siz) {
+      val += c;
+      sum += 1ll * siz * c;
+      tag += c;
+    }
+  };
+  void pushall() {
+    if (p)
+      p->pushall();
+    push();
+  }
 };
 
-// must modify
-Tp make_sentinnel() {
+// must run once
+void make_sentinnel() {
   Tp t = make_safe<node>(0);
   t->siz = 0;
 }
 
-Tp sentinel = make_sentinnel();
-
-bool pos(Tp t) { return t->p->ch[1] == t; }
-
-void apply(Tp t, auto tag) {
-  if (t) {
-    t->val += tag;
-    t->sum += 1ll * t->siz * tag;
-    t->tag += tag;
-  }
-};
-
-void push(Tp t) {
-  if (t->tag) {
-    apply(t->ch[0], t->tag);
-    apply(t->ch[1], t->tag);
-    t->tag = decltype(t->tag)();
-  }
-}
-
-void pull(Tp t) {
-  t->siz = t->ch[0]->siz + 1 + t->ch[1]->siz;
-  t->sum = t->ch[0]->sum + 1 + t->ch[1]->sum;
-}
+bool pos(Tp t) { return t->p->r == t; }
 
 void rotate(Tp t) {
   Tp q = t->p;
-  int x = !pos(t);
-  q->ch[!x] = t->ch[x];
-  if (t->ch[x])
-    t->ch[x]->p = q;
+  if (!pos(t)) {
+    q->l = t->r;
+    if (t->r) 
+      t->r->p = q;
+    t->r = q;
+  } else {
+    q->r = t->l;
+    if (t->l) 
+      t->l->p = q;
+    t->l = q;
+  }
   t->p = q->p;
-  if (q->p)
-    q->p->ch[pos(q)] = t;
-  t->ch[x] = q;
+  if (q->p) 
+    (pos(q) ? q->p->r : q->p->l) = t;
   q->p = t;
-  pull(q);
-}
-
-void pushall(Tp t) {
-  if (t->p)
-    pushall(t->p);
-  push(t);
+  q->pull();
 }
 
 void splay(Tp t, Tp top = 0) {
-  pushall(t);
+  t->pushall();
   while (t->p != top) {
     if (t->p->p != top)
       rotate(pos(t) ^ pos(t->p) ? t : t->p);
     rotate(t);
   }
-  pull(t);
+  t->pull();
 }
 
 // to [-inf, val) and [val, inf]
@@ -83,13 +83,13 @@ pair<Tp, Tp> split1(Tp t, auto x) {
   Tp v = 0;
   Tp j = t;
   for (Tp i = t; i;) {
-    push(i);
+    i->push();
     j = i;
     if (i->val >= x) {
       v = i;
-      i = i->ch[0];
+      i = i->l;
     } else {
-      i = i->ch[1];
+      i = i->r;
     }
   }
 
@@ -100,23 +100,23 @@ pair<Tp, Tp> split1(Tp t, auto x) {
 
   splay(v);
 
-  Tp u = v->ch[0];
+  Tp u = v->l;
   if (u) {
-    v->ch[0] = u->p = 0;
-    pull(v);
+    v->l = u->p = 0;
+    v->pull();
   }
   return {u, v};
 }
 
 // 从 1 开始
-void splay(Tp &t, int k) {
+void splay_kth(Tp &t, int k) {
   while (true) {
-    push(t);
-    if (k > t->ch[0]->siz + 1) {
-      k -= t->ch[0]->siz + 1;
-      t = t->ch[1];
-    } else if (k <= t->ch[0]->siz) {
-      t = t->ch[0];
+    t->push();
+    if (k > t->l->siz + 1) {
+      k -= t->l->siz + 1;
+      t = t->r;
+    } else if (k <= t->l->siz) {
+      t = t->l;
     } else {
       break;
     }
@@ -130,12 +130,12 @@ pair<Tp, Tp> split2(Tp t, int x) {
     return {t, 0};
   }
 
-  splay(t, x);
+  splay_kth(t, x);
 
-  Tp u = t->ch[0];
+  Tp u = t->l;
   if (u) {
-    t->ch[0] = u->p = 0;
-    pull(t);
+    t->l = u->p = 0;
+    t->pull();
   }
   return {u, t};
 }
@@ -145,14 +145,14 @@ Tp merge(Tp l, Tp r) {
     return l | r;
   }
   Tp i = l;
-  push(i);
-  while (i->ch[1]) {
-    i = i->ch[1], push(i);
+  i->push();
+  while (i->r) {
+    i = i->r, i->push();
   }
   splay(i);
-  i->ch[1] = r;
+  i->r = r;
   r->p = i;
-  pull(i);
+  i->pull();
   return i;
 }
 
@@ -160,10 +160,10 @@ void dfs(Tp t, int dep = 0) {
   if (!t) {
     return;
   }
-  push(t);
-  dfs(t->ch[0], dep + 1);
+  t->push();
+  dfs(t->l, dep + 1);
   for (int i = 0; i < dep; i += 1)
     cerr << '\t';
-  cerr << t->val << "\n";
-  dfs(t->ch[1], dep + 1);
+  cerr << t->val << " " << t->sum << "\n";
+  dfs(t->r, dep + 1);
 }
