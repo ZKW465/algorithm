@@ -6,16 +6,16 @@ struct node;
 using Tp = safe_ptr<node>;
 
 struct node {
+  bool rev;
   Tp l, r;
   int siz, k;
   i64 val;
-  i64 sum;
   i64 tag;
   node(i64 val_) {
     siz = 1;
     k = rng();
     val = val_;
-    sum = val_;
+    rev = 0;
     tag = 0;
   }
   void apply(auto c) {
@@ -23,23 +23,33 @@ struct node {
       return;
     }
     val += c;
-    sum += 1LL * c * siz;
     tag += c;
   }
-  void pull() {
-    siz = l->siz + 1 + r->siz;
-    sum = l->sum + val + r->sum;
-  }
-  void push() {
+  void push_stuff() {
     if (tag) {
       l->apply(tag);
       r->apply(tag);
       tag = 0;
     }
   }
+  void reverse() {
+    rev ^= 1;
+  }
+  void pull() {
+    siz = l->siz + 1 + r->siz;
+  }
+  void push() {
+    if (rev) {
+      std::swap(l, r);
+      l->reverse();
+      r->reverse();
+      rev = 0;
+    }
+    push_stuff();
+  }
 };
 
-// must modify
+// must run once
 void make_sentinnel() {
   Tp t = make_safe<node>(0);
   t->siz = 0;
@@ -63,19 +73,19 @@ pair<Tp, Tp> split1(Tp t, auto val) {
   }
 }
 
-// to [1, rk) and [rk, n]
-pair<Tp, Tp> split2(Tp t, int rk) {
+// to [1, k) and [k, n]
+pair<Tp, Tp> split2(Tp t, int k) {
   if (!t) {
     return {t, t};
   }
   t->push();
   Tp u;
-  if (rk <= t->l->siz) {
-    tie(u, t->l) = split2(t->l, rk);
+  if (k <= t->l->siz) {
+    tie(u, t->l) = split2(t->l, k);
     t->pull();
     return {u, t};
-  } else if (rk > t->l->siz + 1) {
-    tie(t->r, u) = split2(t->r, rk - 1 - t->l->siz);
+  } else if (k > t->l->siz + 1) {
+    tie(t->r, u) = split2(t->r, k - 1 - t->l->siz);
     t->pull();
     return {t, u};
   } else {
@@ -102,8 +112,6 @@ Tp merge(Tp u, Tp v) {
   }
 }
 
-// 2056
-
 void dfs(Tp t, int dep = 0) {
   if (!t) {
     return;
@@ -111,11 +119,11 @@ void dfs(Tp t, int dep = 0) {
   dfs(t->l, dep + 1);
   for (int i = 0; i < dep; i += 1)
     cerr << '\t';
-  cerr << t->val << ' ' << t->sum << " " << t->tag << " " << t->siz << '\n';
+  cerr << t->val << " " << t->tag << " " << t->siz << '\n';
   dfs(t->r, dep + 1);
 }
 
-// less_to_val_siz
+// count less siz
 int count_less(Tp t, auto val) {
   int less_siz = 0;
   while (t) {
@@ -130,6 +138,7 @@ int count_less(Tp t, auto val) {
   return less_siz;
 }
 
+// from one
 Tp kth_element(Tp t, int k) {
   while (true) {
     t->push();
@@ -144,7 +153,7 @@ Tp kth_element(Tp t, int k) {
   return t;
 }
 
-// prev_to_val
+// the first element before val
 Tp prev(Tp t, auto val) {
   Tp p;
   while (t) {
@@ -158,7 +167,8 @@ Tp prev(Tp t, auto val) {
   }
   return p;
 }
-// next_to_val
+
+// the first element next to val
 Tp next(Tp t, auto val) {
   Tp p;
   while (t) {

@@ -22,11 +22,8 @@ struct node {
   }
 };
 
-// must work once
+// must run once
 void make_sentinnel() {
-  if (!pool<node>.empty()) {
-    return;
-  }
   Tp t = make_safe<node>(0);
   t->siz = 0;
 }
@@ -48,18 +45,18 @@ pair<Tp, Tp> split1(Tp t, auto val) {
   }
 }
 
-// to [1, rk) and [rk, n]
-pair<Tp, Tp> split2(Tp t, int rk) {
+// to [1, k) and [k, n]
+pair<Tp, Tp> split2(Tp t, int k) {
   if (!t) {
     return {t, t};
   }
   Tp u;
-  if (rk <= t->l->siz) {
-    tie(u, t->l) = split2(t->l, rk);
+  if (k <= t->l->siz) {
+    tie(u, t->l) = split2(t->l, k);
     t->pull();
     return {u, t};
-  } else if (rk > t->l->siz + 1) {
-    tie(t->r, u) = split2(t->r, rk - 1 - t->l->siz);
+  } else if (k > t->l->siz + 1) {
+    tie(t->r, u) = split2(t->r, k - 1 - t->l->siz);
     t->pull();
     return {t, u};
   } else {
@@ -84,8 +81,6 @@ Tp merge(Tp u, Tp v) {
   }
 }
 
-// 2056
-
 void dfs(Tp t, int dep = 0) {
   if (!t) {
     return;
@@ -97,7 +92,7 @@ void dfs(Tp t, int dep = 0) {
   dfs(t->r, dep + 1);
 }
 
-// less_to_val_siz
+// count less siz
 int count_less(Tp t, auto val) {
   int less_siz = 0;
   while (t) {
@@ -125,7 +120,7 @@ Tp kth_element(Tp t, int rk) {
   return t;
 }
 
-// prev_to_val
+// the first element before val
 Tp prev(Tp t, auto val) {
   Tp p;
   while (t) {
@@ -138,7 +133,8 @@ Tp prev(Tp t, auto val) {
   }
   return p;
 }
-// next_to_val
+
+// the first element next to val
 Tp next(Tp t, auto val) {
   Tp p;
   while (t) {

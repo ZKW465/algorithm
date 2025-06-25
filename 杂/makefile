@@ -19,13 +19,17 @@ make.bat :
 @echo off
 mingw32-make %*
 
+use cmd
+
+del x.*
+
 makefile
 
-% : %.cpp
+% : 
 	g++ -std=c++20 -Wall $@.cpp -o $@.exe
-	.\$@.exe < $@.in > $@.out 2> $@.err
+	./$@.exe < $@.in > $@.out 2> $@.err
 
 dir_% :
-	type nul > $*.cpp
-	copy /y test.cpp $*.cpp > nul
-	type nul > $*.in
+	cp "test.cpp" "$*.cpp"
+	echo > $*.in
+

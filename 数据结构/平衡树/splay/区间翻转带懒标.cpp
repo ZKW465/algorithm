@@ -1,6 +1,7 @@
 struct node;
 using Tp = safe_ptr<node>;
 struct node {
+  bool rev;
   Tp l, r, p;
   int siz;
   i64 val;
@@ -12,12 +13,24 @@ struct node {
     sum = val;
     tag = 0;
   }
-  void push() {
+  void reverse() {
+    rev ^= 1;
+  }
+  void push_stuff() {
     if (tag) {
       l->apply(tag);
       r->apply(tag);
       tag = 0;
     }
+  }
+  void push() {
+    if (rev) {
+      std::swap(l, r);
+      l->reverse();
+      r->reverse();
+      rev = 0;
+    }
+    push_stuff();
   }
   void pull() {
     siz = l->siz + 1 + r->siz;
@@ -31,8 +44,7 @@ struct node {
     }
   };
   void pushall() {
-    if (p)
-      p->pushall();
+    if (p) p->pushall();
     push();
   }
 };
