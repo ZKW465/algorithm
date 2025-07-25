@@ -1,5 +1,5 @@
 // 匹配最长前缀的长度
-vector<int> pfunc(string s) {
+vector<int> prefunction(string s) {
     int n = s.size();
     vector<int> p(n);
     for (int i = 1; i < n; i ++) {
